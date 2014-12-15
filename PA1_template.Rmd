@@ -6,20 +6,186 @@ output:
 ---
 
 
+
+
+
 ## Loading and preprocessing the data
 
+The code is loaded into a data frame object called "activitydata".
+```{r echo=TRUE}
+activitydata <- read.csv("C:/Users/Dora/gitRepos/rprogramming/cl5wk2/activity.csv")
+```
+The data set is reasonably tidy with 3 columns of data and needs no further processing to get started. 
+```{r echo=TRUE}
+head(activitydata)
+```
+The data set includes `r length(activitydata$steps)` observations.
+```{r echo=TRUE}
+dim(activitydata)
+```
 
 
 ## What is mean total number of steps taken per day?
 
+The sum for each day is calculated and stored in the object "byday".
+```{r echo=TRUE}
+byday <- by(activitydata$steps, activitydata$date, sum)
+head(byday)
+dim(byday)
+```
+Ignoring the missing values for now, a histogram is plotted.
+```{r echo=TRUE}
+hist(byday, xlab="Total Steps in a day")
+```
 
+
+The mean and median of these total number of steps per day are reported below.
+```{r echo=TRUE}
+mean(byday, na.rm=TRUE)
+median(byday, na.rm=TRUE)
+
+```
 
 ## What is the average daily activity pattern?
 
-
-
+A vector "internalvector" of numbers 1 through 288 is formed and binded to "activitydata" such that the numbers will repeat as needed to fill in the new column. This numbers the 288 five-minute intervals present for each day.
+```{r echo=TRUE}
+#Get vector for 1:288
+intervalvector<-1:288
+activitydata<-cbind(activitydata,intervalvector)
+```
+The "by" function is used to calculate the mean for each of the 288 intervals.
+```{r echo=TRUE}
+byinterval <- by(activitydata$steps, activitydata$intervalvector, mean, na.rm=TRUE)
+```
+These values are plotted to show an average activity pattern in a day
+```{r echo=TRUE}
+plot(byinterval, ylab="Number of Steps", xlab = "5-min Interval", type="l")
+```
+The maximum average number of steps taken per day is `r max(byinterval)` and the interval number corresponding is `r which.max(byinterval)`. If this course's syllabus accurately reflected the time investment needed per week, I'd tell you the time that corresponds to that interval number.
+```{r echo=TRUE}
+max(byinterval)
+which.max(byinterval)
+```
 ## Imputing missing values
 
+The number of missing values in this data set is reported below.
+```{r echo=TRUE}
+booleanofnas <- is.na(activitydata$steps)
+sum(booleanofnas)
+```
+The strategy for filling in missing values will be to fill them in with means for that time interval. Median is not as good of a strategy here because there are many zeroes in this data set and that reflects a resting state as opposed to a continuous variation of number of steps.
 
+The object "meanbyinterval" is found using the "by" function and converting the resulting object to a vector.
+```{r echo=TRUE}
+meanbyinterval <- by(activitydata$steps, activitydata$intervalvector, mean, na.rm=TRUE)
+meanbyinterval <- as.vector(meanbyinterval)
+```
+This vector is bound to "activitydata" to make the code for replacing the missing values easier. The default behavior of r will again be to repeat this data as needed to fill in the column.
+```{r echo=TRUE}
+activitydata<-cbind(activitydata, meanbyinterval)
+```
+The each observation is  visited using a "for" loop, then tested to see if the value is missing and a replacement is made from the "meanbyinterval" data if so.
+```{r echo=TRUE}
+for (i in 1:length(booleanofnas))
+  {
+    if (booleanofnas[i])
+     {
+      activitydata$steps[i] <- activitydata$meanbyinterval[i]
+      }
+    }
+
+```
+
+This data is used in a new histogram.
+```{r echo=TRUE}
+byday <- by(activitydata$steps, activitydata$date, sum)
+head(byday)
+dim(byday)
+hist(byday, xlab="Number of Steps per Day")
+
+```
+The mean and median are also reported. These values are very similar to the data from the first part of the assignment. Replacing the missing values had very little impact. This was expected because the data has a very normal distribution and the strategy chosen was to use the mean.
+```{r echo=TRUE}
+
+mean(byday, na.rm=TRUE)
+median(byday, na.rm=TRUE)
+
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r echo=TRUE}
+  dayofweek<-weekdays(as.Date(activitydata$date))
+ activitydata<-cbind(activitydata, dayofweek)
+```
+The day of the week is found using the weekdays function and and if statement is used to assign each day to one of two factors, "weekend" or "weekday".
+```{r echo=TRUE}
+weekdayOrWeekend <-factor(c("weekday",  "weekend"))
+activitydata<-cbind(activitydata,weekdayOrWeekend)
+class(activitydata$weekdayOrWeekend)
+for(i in 1:length(activitydata$dayofweek))
+  {
+  if((activitydata$dayofweek[i] == "Saturday") | (activitydata$dayofweek[i] == "Sunday"))
+    {
+    #message("inside if statement")
+    activitydata$weekdayOrWeekend[i] <- "weekend"
+
+    } else {
+      activitydata$weekdayOrWeekend[i] <- "weekday"
+    }
+  }
+```
+The data is split into subsets so the mean can be calculated for each interval with weekdays and weekend days separated.
+
+```{r echo=TRUE}
+subsets<-split(activitydata, activitydata$weekdayOrWeekend,drop=TRUE)
+weekdaydata<-subsets[["weekday"]]
+weekenddata<-subsets[["weekend"]]
+weekdaybyinterval <- by(weekdaydata$steps, weekdaydata$intervalvector, mean)
+weekendbyinterval <- by(weekenddata$steps, weekenddata$intervalvector, mean)
+```
+Needed conversion  to data frames is made.
+```{r echo=TRUE}
+weekdaybyinterval<-data.frame(as.vector(weekdaybyinterval))
+weekendbyinterval<-data.frame(as.vector(weekendbyinterval))
+```
+Each data frame is given a new column indicating whether an interval corresponds to a weekday or weekend day.
+```{r echo=TRUE}
+dayofweek<-"weekend"
+weekendbyinterval$dayofweek<-dayofweek
+weekendbyinterval$intervalvector<- intervalvector
+
+
+dayofweek<-"weekday"
+weekdaybyinterval$dayofweek<-dayofweek
+weekdaybyinterval$intervalvector<-intervalvector
+```
+Simpler column names are assigned as needed.
+```{r echo=TRUE}
+
+names(weekendbyinterval)[names(weekendbyinterval)=="as.vector.weekendbyinterval."] <- "steps"
+names(weekdaybyinterval)[names(weekdaybyinterval)=="as.vector.weekdaybyinterval."] <- "steps"
+names(weekendbyinterval)
+names(weekdaybyinterval)
+```
+These data frames are combined into a single object "bothfactorsdata".
+```{r echo=TRUE}
+
+bothfactorsdata<-rbind(weekendbyinterval,weekdaybyinterval)
+head(bothfactorsdata)
+tail(bothfactorsdata)
+
+```
+The lattice package is used to plot weekday and weekend data.
+```{r echo=TRUE}
+require(lattice)
+
+
+xyplot(steps ~ intervalvector| dayofweek, 
+           data = bothfactorsdata,
+           type = "l",
+           xlab = "Interval",
+           ylab = "Number of steps",
+           layout=c(1,2))
+```
+This shows a higher level of activity and more intense activity for weekdays over weekend days.
