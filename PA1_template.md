@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 
 
@@ -65,7 +70,7 @@ Ignoring the missing values for now, a histogram is plotted.
 hist(byday, xlab="Total Steps in a day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
 
 
 The mean and median of these total number of steps per day are reported below.
@@ -106,7 +111,7 @@ These values are plotted to show an average activity pattern in a day
 plot(byinterval, ylab="Number of Steps", xlab = "5-min Interval", type="l")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
 The maximum average number of steps taken per day is 206.1698113 and the interval number corresponding is 104. If this course's syllabus accurately reflected the time investment needed per week, I'd tell you the time that corresponds to that interval number.
 
 ```r
@@ -187,7 +192,7 @@ dim(byday)
 hist(byday, xlab="Number of Steps per Day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
+![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15-1.png) 
 The mean and median are also reported. These values are very similar to the data from the first part of the assignment. Replacing the missing values had very little impact. This was expected because the data has a very normal distribution and the strategy chosen was to use the mean.
 
 ```r
@@ -333,5 +338,5 @@ xyplot(steps ~ intervalvector| dayofweek,
            layout=c(1,2))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-24-1.png) 
+![plot of chunk unnamed-chunk-24](figure/unnamed-chunk-24-1.png) 
 This shows a higher level of activity and more intense activity for weekdays over weekend days.
